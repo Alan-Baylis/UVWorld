@@ -6,12 +6,12 @@ namespace UVWorld {
     [ExecuteInEditMode]
     public class FrustumUVWWorld : AbstractUVWWorld {
         public enum DebugModeEnum { GizmoSelected = 0, Gizmo }
-        public enum FitEnum { Frastum = 0, Far }
-        public static readonly Vector3[] FRASTUM_VERTICES = new Vector3[]{
+        public enum FitEnum { Frustum = 0, Far }
+        public static readonly Vector3[] FRUSTUM_VERTICES = new Vector3[]{
             new Vector3(0f, 0f, 0f), new Vector3(1f, 0f, 0f), new Vector3(0f, 1f, 0f), new Vector3(1f, 1f, 0f),
             new Vector3(0f, 0f, 1f), new Vector3(1f, 0f, 1f), new Vector3(0f, 1f, 1f), new Vector3(1f, 1f, 1f),
         };
-        public static readonly int[] FRASTUM_QUADS = new int[] { 
+        public static readonly int[] FRUSTUM_QUADS = new int[] { 
             0, 2, 3, 1,  4, 0, 1, 5,  1, 3, 7, 5,  4, 6, 2, 0,  2, 6, 7, 3,  5, 7, 6, 4
         };
 
@@ -20,21 +20,22 @@ namespace UVWorld {
         public Camera targetCam;
         public float nearPlane = 1f;
         public float farPlane = 100f;
-        public Color frastumColor = Color.gray;
+        public Vector3 extrude = Vector3.one;
+        public Color frustumColor = Color.gray;
 
-        Mesh _frastumMesh;
+        Mesh _frustumMesh;
         Vector3[] _vertices;
         void OnEnable() {
             _vertices = new Vector3[8];
-            _frastumMesh = new Mesh ();
-            _frastumMesh.vertices = _vertices;
-            _frastumMesh.normals = new Vector3[8];
-            _frastumMesh.SetIndices (FRASTUM_QUADS, MeshTopology.Quads, 0);
-            _frastumMesh.RecalculateBounds ();
-            _frastumMesh.RecalculateNormals ();
+            _frustumMesh = new Mesh ();
+            _frustumMesh.vertices = _vertices;
+            _frustumMesh.normals = new Vector3[8];
+            _frustumMesh.SetIndices (FRUSTUM_QUADS, MeshTopology.Quads, 0);
+            _frustumMesh.RecalculateBounds ();
+            _frustumMesh.RecalculateNormals ();
         }
         void OnDisable() {
-            DestroyImmediate (_frastumMesh);
+            DestroyImmediate (_frustumMesh);
         }
         void OnDrawGizmos() {
             if (debugMode == DebugModeEnum.Gizmo)
@@ -57,33 +58,41 @@ namespace UVWorld {
         #endregion
 
         public Vector3 WorldFrastum(Vector3 uvw) {
-            uvw.z = Mathf.Lerp (nearPlane, farPlane, uvw.z);
+            uvw = Extrude (uvw);
+            uvw.z = Mathf.LerpUnclamped (nearPlane, farPlane, uvw.z);
             return targetCam.ViewportToWorldPoint (uvw);
         }
         public Vector3 WorldFar(Vector3 uvw) {
-            var z = Mathf.Lerp (nearPlane, farPlane, uvw.z);
+            uvw = Extrude (uvw);
+            var z = Mathf.LerpUnclamped (nearPlane, farPlane, uvw.z);
             uvw.z = farPlane;
             var localPos = targetCam.transform.InverseTransformPoint (targetCam.ViewportToWorldPoint (uvw));
             localPos.z = z;
             return targetCam.transform.TransformPoint (localPos);
         }
 
-        void UpdateFrastumMesh() {
-            for (var i = 0; i < FRASTUM_VERTICES.Length; i++)
-                _vertices [i] = World (FRASTUM_VERTICES [i]);
-            _frastumMesh.vertices = _vertices;
-            _frastumMesh.RecalculateBounds ();
-            _frastumMesh.RecalculateNormals ();
+        void UpdateFrustumMesh() {
+            for (var i = 0; i < FRUSTUM_VERTICES.Length; i++)
+                _vertices [i] = World (FRUSTUM_VERTICES [i]);
+            _frustumMesh.vertices = _vertices;
+            _frustumMesh.RecalculateBounds ();
+            _frustumMesh.RecalculateNormals ();
         }
 
+        Vector3 Extrude(Vector3 uvw) {
+            return new Vector3 (
+                extrude.x * (uvw.x - 0.5f) + 0.5f,
+                extrude.y * (uvw.y - 0.5f) + 0.5f,
+                extrude.z * (uvw.z - 0.5f) + 0.5f);
+        }
         void DrawGizmos () {
-            if (targetCam == null || _vertices == null || _frastumMesh == null)
+            if (targetCam == null || _vertices == null || _frustumMesh == null)
                 return;
-            UpdateFrastumMesh ();
-            Gizmos.color = frastumColor;
-            Gizmos.DrawMesh (_frastumMesh);
-            Gizmos.color = 1.1f * frastumColor;
-            Gizmos.DrawWireMesh (_frastumMesh);
+            UpdateFrustumMesh ();
+            Gizmos.color = frustumColor;
+            Gizmos.DrawMesh (_frustumMesh);
+            Gizmos.color = 1.1f * frustumColor;
+            Gizmos.DrawWireMesh (_frustumMesh);
         }
     }
 }
