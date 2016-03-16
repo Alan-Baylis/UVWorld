@@ -32,6 +32,7 @@ namespace UVWorld {
     		}
     	}
         public bool Local(Vector2 uv, out Vector3 pos, out Vector3 normal) {
+            uv = Extrude (uv);
     		for (var i = 0; i < _uvTris.Length; i++) {
     			var uvTri = _uvTris[i];
     			float s, t;

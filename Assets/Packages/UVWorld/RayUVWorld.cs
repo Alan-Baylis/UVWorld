@@ -13,6 +13,7 @@ namespace UVWorld {
             _attachedCollider = GetComponent<Collider> ();
         }
         public override bool World(Vector2 uv, out Vector3 pos, out Vector3 normal) {
+            uv = Extrude (uv);
             var ray = targetCam.ViewportPointToRay (uv);
 
             RaycastHit hit;
