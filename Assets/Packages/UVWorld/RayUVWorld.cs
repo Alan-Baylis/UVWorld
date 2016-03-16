@@ -4,7 +4,7 @@ using System.Collections;
 namespace UVWorld {
 
     [RequireComponent(typeof(Collider))]
-    public class ViewportUVWorld : AbstractUVWorld {
+    public class RayUVWorld : AbstractUVWorld {
         public Camera targetCam;
 
         Collider _attachedCollider;
