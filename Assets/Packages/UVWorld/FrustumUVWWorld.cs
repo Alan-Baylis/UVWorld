@@ -46,23 +46,25 @@ namespace UVWorld {
         }
 
         #region implemented abstract members of AbstractUVWWorld
-        public override Vector3 World (Vector3 uvw) {
+        public override Vector3 World (Vector3 uvw, bool extrude = true) {
             switch (fit) {
             case FitEnum.Far:
-                return WorldFar (uvw);
+                return WorldFar (uvw, extrude);
             default:
-                return WorldFrastum (uvw);
+                return WorldFrastum (uvw, extrude);
             }
         }
         #endregion
 
-        public Vector3 WorldFrastum(Vector3 uvw) {
-            uvw = Extrude (uvw);
+        public Vector3 WorldFrastum(Vector3 uvw, bool extrude) {
+            if (extrude)
+                uvw = Extrude (uvw);
             uvw.z = Mathf.LerpUnclamped (nearPlane, farPlane, uvw.z);
             return targetCam.ViewportToWorldPoint (uvw);
         }
-        public Vector3 WorldFar(Vector3 uvw) {
-            uvw = Extrude (uvw);
+        public Vector3 WorldFar(Vector3 uvw, bool extrude) {
+            if (extrude)
+                uvw = Extrude (uvw);
             var z = Mathf.LerpUnclamped (nearPlane, farPlane, uvw.z);
             uvw.z = farPlane;
             var localPos = targetCam.transform.InverseTransformPoint (targetCam.ViewportToWorldPoint (uvw));

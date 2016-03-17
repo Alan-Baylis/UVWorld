@@ -31,8 +31,9 @@ namespace UVWorld {
     			_uvTris[i] = new Triangle2D(uva, uvb, uvc);
     		}
     	}
-        public bool Local(Vector2 uv, out Vector3 pos, out Vector3 normal) {
-            uv = Extrude (uv);
+        public bool Local(Vector2 uv, out Vector3 pos, out Vector3 normal, bool extrude = true) {
+            if (extrude)
+                uv = Extrude (uv);
     		for (var i = 0; i < _uvTris.Length; i++) {
     			var uvTri = _uvTris[i];
     			float s, t;
@@ -48,14 +49,17 @@ namespace UVWorld {
     		normal = default(Vector3);
     		return false;
     	}
-        public override bool World(Vector2 uv, out Vector3 pos, out Vector3 normal) {
-            var result = Local (uv, out pos, out normal);
+
+        #region implemented abstract members of AbstractUVWorld
+        public override bool World(Vector2 uv, out Vector3 pos, out Vector3 normal, bool extrude) {
+            var result = Local (uv, out pos, out normal, extrude);
             if (result) {
                 pos = transform.TransformPoint (pos);
                 normal = transform.TransformDirection (normal);
             }
             return result;
         }
+        #endregion
 
     	public void TriangleUvs(int i, out Vector2 uva, out Vector2 uvb, out Vector2 uvc) {
     		var i3 = 3 * i;
