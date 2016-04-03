@@ -7,6 +7,7 @@ namespace UVWorld {
     public class NormalizedPosition : MonoBehaviour {
         public const float SEED_SCALE = 100f;
         public AbstractUVWWorld uvwWorld;
+		public Transform[] points;
         public float freq = 0.1f;
 
         Vector3 _seed;
@@ -21,7 +22,10 @@ namespace UVWorld {
                 Mathf.PerlinNoise (t + _seed.y, _seed.z),
                 Mathf.PerlinNoise (t + _seed.z, _seed.x));
             
-            transform.position = uvwWorld.World (uvw);
+			foreach (var p in points) {
+            	p.position = uvwWorld.World (uvw);
+				uvw = uvwWorld.UVW (p.position);
+			}
     	}
     }
 }

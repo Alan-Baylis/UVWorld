@@ -14,6 +14,7 @@ namespace UVWorld {
         public static readonly int[] FRUSTUM_QUADS = new int[] { 
             0, 2, 3, 1,  4, 0, 1, 5,  1, 3, 7, 5,  4, 6, 2, 0,  2, 6, 7, 3,  5, 7, 6, 4
         };
+		public const float MIN_CLIP_DIST = 1e-3f;
 
         public DebugModeEnum debugMode;
         public FitEnum fit;
@@ -54,6 +55,14 @@ namespace UVWorld {
                 return WorldFrastum (uvw, extrude);
             }
         }
+		public override Vector3 UVW (Vector3 world, bool intrude = true) {
+			switch (fit) {
+			case FitEnum.Far:
+				return UVWFar (world, intrude);
+			default:
+				return UVWFrastum (world, intrude);
+			}
+		}
         #endregion
 
         public Vector3 WorldFrastum(Vector3 uvw, bool extrude) {
@@ -62,6 +71,15 @@ namespace UVWorld {
             uvw.z = Mathf.LerpUnclamped (nearPlane, farPlane, uvw.z);
             return targetCam.ViewportToWorldPoint (uvw);
         }
+		public Vector3 UVWFrastum(Vector3 world, bool intrude) {
+			CheckClipPlanes ();
+			var uvw = targetCam.WorldToViewportPoint (world);
+			uvw.z = (uvw.z - nearPlane) / (farPlane - nearPlane);
+			if (intrude)
+				uvw = Intrude(uvw);
+			return uvw;
+		}
+
         public Vector3 WorldFar(Vector3 uvw, bool extrude) {
             if (extrude)
                 uvw = Extrude (uvw);
@@ -71,7 +89,22 @@ namespace UVWorld {
             localPos.z = z;
             return targetCam.transform.TransformPoint (localPos);
         }
+		public Vector3 UVWFar(Vector3 world, bool intrude) {
+			CheckClipPlanes ();
+			var local = targetCam.transform.InverseTransformPoint (world);
+			var z = (local.z - nearPlane) / (farPlane - nearPlane);
+			local.z = farPlane;
+			var uvw = targetCam.WorldToViewportPoint (targetCam.transform.TransformPoint (local));
+			uvw.z = z;
+			if (intrude)
+				uvw = Intrude (uvw);
+			return uvw;
+		}
 
+		void CheckClipPlanes() {
+			if ((farPlane - nearPlane) < MIN_CLIP_DIST)
+				farPlane = nearPlane + MIN_CLIP_DIST;
+		}
         void UpdateFrustumMesh() {
             for (var i = 0; i < FRUSTUM_VERTICES.Length; i++)
                 _vertices [i] = World (FRUSTUM_VERTICES [i]);
