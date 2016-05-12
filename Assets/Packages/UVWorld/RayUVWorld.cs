@@ -30,8 +30,11 @@ namespace UVWorld {
             normal = Vector3.up;
             return false;
         }
-        public override bool Local (Vector2 uv, out Vector3 pos, out Vector3 normal, bool extrude = true) {
-            throw new System.NotImplementedException ();
+        public override bool UV (Vector3 pos, out Vector2 uv, bool extrude = true) {
+            uv = (Vector2)targetCam.WorldToViewportPoint (pos);
+            if (extrude)
+                uv = Intrude (uv);
+            return 0f <= uv.x && uv.x <= 1f && 0f <= uv.y && uv.y <= 1f;
         }
         #endregion
     }
