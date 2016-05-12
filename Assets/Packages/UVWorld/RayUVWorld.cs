@@ -12,6 +12,8 @@ namespace UVWorld {
     	void Awake() {
             _attachedCollider = GetComponent<Collider> ();
         }
+
+        #region implemented abstract members of AbstractUVWorld
         public override bool World(Vector2 uv, out Vector3 pos, out Vector3 normal, bool extrude = true) {
             if (extrude)
                 uv = Extrude (uv);
@@ -28,5 +30,9 @@ namespace UVWorld {
             normal = Vector3.up;
             return false;
         }
+        public override bool Local (Vector2 uv, out Vector3 pos, out Vector3 normal, bool extrude = true) {
+            throw new System.NotImplementedException ();
+        }
+        #endregion
     }
 }

@@ -31,7 +31,7 @@ namespace UVWorld {
     			_uvTris[i] = new Triangle2D(uva, uvb, uvc);
     		}
     	}
-        public bool Local(Vector2 uv, out Vector3 pos, out Vector3 normal, bool extrude = true) {
+        public override bool Local(Vector2 uv, out Vector3 pos, out Vector3 normal, bool extrude = true) {
             if (extrude)
                 uv = Extrude (uv);
     		for (var i = 0; i < _uvTris.Length; i++) {
